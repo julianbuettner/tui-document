@@ -1,0 +1,12 @@
+[package]
+name = "tui-document"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "tui_document"
+crate-type = ["lib"]
+
+[dependencies]
+ratatui = "0.24.0"
+unicode-segmentation = "1.10.1"
