@@ -1,27 +1,11 @@
 use std::cmp::{max, min};
 
-use crate::{document::DocumentBlock, ScrollRect};
-use ratatui::{prelude::Rect, style::Style, text::Span};
+use crate::document::DocumentBlock;
+use ratatui::{
+    style::Style,
+    text::{Line, Span},
+};
 use unicode_segmentation::UnicodeSegmentation;
-
-#[derive(Debug, Clone)]
-pub struct TextBlockStyle {
-    pub underlined: bool,
-    pub stricken_through: bool,
-    pub bold: bool,
-    pub italic: bool,
-}
-
-impl Default for TextBlockStyle {
-    fn default() -> Self {
-        Self {
-            underlined: false,
-            stricken_through: false,
-            bold: false,
-            italic: false,
-        }
-    }
-}
 
 /// Will be converted to a span.
 #[derive(Debug, Clone)]
@@ -34,11 +18,10 @@ impl TextBlock {
     pub fn space_separate(&self) -> Text {
         Text(
             self.content
-                .split(" ")
-                .into_iter()
+                .split(' ')
                 .map(|word| TextBlock {
                     content: format!("{} ", word),
-                    style: self.style.clone(),
+                    style: self.style,
                 })
                 .collect(),
         )
@@ -64,13 +47,10 @@ impl DocumentBlock for TextBlock {
         // be one word in a space separated Text.
         (min(width, self.max_width()), self.max_width() / width + 1)
     }
-    fn render_on_area(&self, area: ScrollRect, buf: &mut ratatui::prelude::Buffer) {
-        if area.x < 0 {
-            return;
+    fn get_text(&self, _width: usize) -> ratatui::text::Text {
+        ratatui::text::Text {
+            lines: vec![Line::styled(&self.content, self.style)],
         }
-        let skip = max(-1 * area.y, 0);
-        let offset = 
-        buf.set_string(area.x, area.y, &self.content, self.style);
     }
 }
 
@@ -112,27 +92,26 @@ impl DocumentBlock for Text {
         max_width = min(max_width, width);
         (max_width, line_count)
     }
-    fn render_on_area(&self, area: ScrollRect, buf: &mut ratatui::prelude::Buffer) {
-        let mut rel_x = 0;
-        let mut rel_y = 0;
-        for word in self.0.iter() {
-            let word_length = word.max_width();
-            let overlength = word_length > area.width.into();
-            let word_rect = ScrollRect {
-                x: area.x + rel_x,
-                y: area.y + rel_y,
-                height: 1,
-                width: word_length,
-            };
-            match (rel_x, word_length, overlength) {
-                (0, n, true) => {
-                    // Render super wide word as far as possible
-                    word.render_on_area(area, buf);
-                    rel_x = 0;
-                    rel_y += 1;
-                }
+    fn get_text(&self, width: usize) -> ratatui::text::Text {
+        let mut lines = Vec::new();
+        let mut current_line = Line::default();
+        for span in self.0.iter().map(|b| b.to_span()) {
+            if current_line.width() == 0 {
+                current_line.spans.push(span);
+                continue;
             }
+            if current_line.width() + span.width() > width {
+                lines.push(current_line);
+                current_line = Line::default();
+                continue;
+            }
+            current_line.spans.push(span);
         }
+        if current_line.width() > 0 {
+            lines.push(current_line);
+        }
+
+        ratatui::text::Text { lines }
     }
 }
 

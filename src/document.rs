@@ -1,6 +1,7 @@
-use ratatui::{style::Style, prelude::{Rect, Buffer}};
-
-use crate::ScrollRect;
+use ratatui::{
+    text::Text,
+    widgets::{Paragraph, Wrap},
+};
 
 pub trait DocumentBlock {
     // If the block can be rendered on a
@@ -27,7 +28,7 @@ pub trait DocumentBlock {
     // [Widget::render](https://docs.rs/ratatui/latest/ratatui/widgets/trait.Widget.html)
     fn box_size_given_width(&self, width: usize) -> (usize, usize);
 
-    fn render_on_area(&self, area: ScrollRect, buf: &mut Buffer);
+    fn get_text(&self, width: usize) -> Text;
 }
 
 pub struct Document(pub Vec<Box<dyn DocumentBlock>>);
@@ -39,14 +40,21 @@ pub struct DocumentWidget {
     pub scroll_offset: usize,
 }
 
+impl DocumentWidget {
+    pub fn to_paragraph(&self, width: usize) -> Paragraph {
+        let lines: Vec<_> = self
+            .document
+            .0
+            .iter()
+            .flat_map(|t| t.get_text(width).lines.into_iter())
+            .collect();
+        let new_text = Text::from(lines);
+        Paragraph::new(new_text).wrap(Wrap { trim: true })
+    }
+}
 
 impl ratatui::widgets::Widget for &DocumentWidget {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer) {
-        let mut rect: ScrollRect = area.into();
-        rect.scroll_y(self.scroll_offset as i32);
-        let current_line = self.scroll_offset as i64 * -1;
-        for block in self.document.0.iter() {
-            let (width, height) = block.box_size_given_width(area.width as usize);
-        }
+        self.to_paragraph(area.width as usize).render(area, buf)
     }
 }

@@ -1,4 +1,9 @@
-use crate::{document::DocumentBlock, text::Text, ScrollRect};
+use ratatui::{
+    style::Style,
+    text::{Span, Text},
+};
+
+use crate::{document::DocumentBlock, text::Text as DText};
 
 /// Heading One
 /// ===========
@@ -17,8 +22,21 @@ pub enum TitleLevel {
     Heading6,
 }
 
+impl TitleLevel {
+    fn as_u8(&self) -> u8 {
+        match self {
+            Self::Heading1 => 1,
+            Self::Heading2 => 2,
+            Self::Heading3 => 3,
+            Self::Heading4 => 4,
+            Self::Heading5 => 5,
+            Self::Heading6 => 6,
+        }
+    }
+}
+
 pub struct Title {
-    pub text: Text,
+    pub text: DText,
     pub level: TitleLevel,
 }
 
@@ -45,7 +63,33 @@ impl DocumentBlock for Title {
             TitleLevel::Heading6 => self.text.box_size_given_width(width - 7),
         }
     }
-    fn render_on_area(&self, area: ScrollRect, buf: &mut ratatui::prelude::Buffer) {
-        todo!()
+    fn get_text(&self, width: usize) -> ratatui::text::Text {
+        let (underline, prefix) = match self.level {
+            TitleLevel::Heading1 => (true, ""),
+            TitleLevel::Heading2 => (false, "# "),
+            TitleLevel::Heading3 => (false, "## "),
+            TitleLevel::Heading4 => (false, "### "),
+            TitleLevel::Heading5 => (false, "#### "),
+            TitleLevel::Heading6 => (false, "##### "),
+        };
+        let mut lines: Vec<ratatui::text::Line<'_>> = self
+            .text
+            .get_text(width - prefix.len())
+            .lines
+            .into_iter()
+            .map(|mut line| {
+                line.spans.insert(0, Span::from(prefix));
+                line
+            })
+            .collect();
+        if underline {
+            let real_width = lines.iter().map(|line| line.width()).max().unwrap_or(3);
+            let bar: String = "=".repeat(real_width);
+            let line_span = Span::from(bar);
+            lines.push(ratatui::text::Line::from(line_span));
+        }
+        let mut t = Text { lines };
+        t.patch_style(Style::default().fg(ratatui::style::Color::LightYellow));
+        t
     }
 }
