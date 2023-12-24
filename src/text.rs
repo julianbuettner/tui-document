@@ -112,7 +112,6 @@ impl DocumentBlock for Text {
             if current_line.width() + span.width() > width {
                 lines.push(current_line);
                 current_line = Line::default();
-                continue;
             }
             current_line.spans.push(span);
         }
