@@ -8,5 +8,6 @@ name = "tui_document"
 crate-type = ["lib"]
 
 [dependencies]
+crossterm = "0.27.0"
 ratatui = "0.24.0"
 unicode-segmentation = "1.10.1"

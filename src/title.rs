@@ -1,4 +1,4 @@
-use crate::{document::DocumentBlock, text::Text};
+use crate::{document::DocumentBlock, text::Text, ScrollRect};
 
 /// Heading One
 /// ===========
@@ -37,12 +37,15 @@ impl DocumentBlock for Title {
                 (x, y + 1)
             }
             // Heading 2 is prefixed in every line by "## "
-            TitleLevel::Heading2 => self.box_size_given_width(width - 3),
+            TitleLevel::Heading2 => self.text.box_size_given_width(width - 3),
             // Heading 3 is prefixed in every line by "### "
-            TitleLevel::Heading3 => self.box_size_given_width(width - 4),
-            TitleLevel::Heading4 => self.box_size_given_width(width - 5),
-            TitleLevel::Heading5 => self.box_size_given_width(width - 6),
-            TitleLevel::Heading6 => self.box_size_given_width(width - 7),
+            TitleLevel::Heading3 => self.text.box_size_given_width(width - 4),
+            TitleLevel::Heading4 => self.text.box_size_given_width(width - 5),
+            TitleLevel::Heading5 => self.text.box_size_given_width(width - 6),
+            TitleLevel::Heading6 => self.text.box_size_given_width(width - 7),
         }
+    }
+    fn render_on_area(&self, area: ScrollRect, buf: &mut ratatui::prelude::Buffer) {
+        todo!()
     }
 }

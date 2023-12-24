@@ -1,6 +1,7 @@
-use std::cmp::{min, max};
+use std::cmp::{max, min};
 
-use crate::document::DocumentBlock;
+use crate::{document::DocumentBlock, ScrollRect};
+use ratatui::{prelude::Rect, style::Style, text::Span};
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone)]
@@ -22,25 +23,33 @@ impl Default for TextBlockStyle {
     }
 }
 
+/// Will be converted to a span.
 #[derive(Debug, Clone)]
 pub struct TextBlock {
     pub content: String,
-    pub style: TextBlockStyle,
+    pub style: Style,
 }
 
 impl TextBlock {
     pub fn space_separate(&self) -> Text {
-        Text(self.content
-            .split(" ")
-            .into_iter()
-            .map(|word| TextBlock {
-                content: format!("{} ", word),
-                style: self.style.clone(),
-            })
-            .collect())
+        Text(
+            self.content
+                .split(" ")
+                .into_iter()
+                .map(|word| TextBlock {
+                    content: format!("{} ", word),
+                    style: self.style.clone(),
+                })
+                .collect(),
+        )
+    }
+    pub fn to_span(&self) -> Span {
+        Span::styled(&self.content, self.style)
     }
 }
 
+/// Will be converted to a line in a paragrpah,
+/// with lines wrapped.
 pub struct Text(pub Vec<TextBlock>);
 
 impl DocumentBlock for TextBlock {
@@ -54,6 +63,14 @@ impl DocumentBlock for TextBlock {
         // Expect to contain no space. This TextBlock should
         // be one word in a space separated Text.
         (min(width, self.max_width()), self.max_width() / width + 1)
+    }
+    fn render_on_area(&self, area: ScrollRect, buf: &mut ratatui::prelude::Buffer) {
+        if area.x < 0 {
+            return;
+        }
+        let skip = max(-1 * area.y, 0);
+        let offset = 
+        buf.set_string(area.x, area.y, &self.content, self.style);
     }
 }
 
@@ -89,12 +106,33 @@ impl DocumentBlock for Text {
                     current_line_length += n;
                 }
                 (_, _, false) => unreachable!(),
-
             }
             max_width = max(max_width, current_line_length);
         }
         max_width = min(max_width, width);
         (max_width, line_count)
+    }
+    fn render_on_area(&self, area: ScrollRect, buf: &mut ratatui::prelude::Buffer) {
+        let mut rel_x = 0;
+        let mut rel_y = 0;
+        for word in self.0.iter() {
+            let word_length = word.max_width();
+            let overlength = word_length > area.width.into();
+            let word_rect = ScrollRect {
+                x: area.x + rel_x,
+                y: area.y + rel_y,
+                height: 1,
+                width: word_length,
+            };
+            match (rel_x, word_length, overlength) {
+                (0, n, true) => {
+                    // Render super wide word as far as possible
+                    word.render_on_area(area, buf);
+                    rel_x = 0;
+                    rel_y += 1;
+                }
+            }
+        }
     }
 }
 
@@ -117,7 +155,6 @@ mod test {
 
     #[test]
     fn text_box_size_given_width() {
-
         let text = TextBlock {
             content: "This is some dummy text".to_string(),
             style: Default::default(),
@@ -134,6 +171,5 @@ mod test {
 
         let (x, y) = blocks.box_size_given_width(12);
         assert_eq!((x, y), (11, 3));
-
     }
 }
