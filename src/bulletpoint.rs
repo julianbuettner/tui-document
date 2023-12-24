@@ -1,5 +1,5 @@
 use std::{
-    iter::{once, repeat, repeat_with},
+    iter::{once, repeat_with},
 };
 
 use ratatui::text::Span;
@@ -53,7 +53,7 @@ impl DocumentBlock for BulletPoint {
             .chain(self.point.chars())
             .chain(once(' '))
             .collect();
-        let empty_prefix: String = repeat(' ').take(self.indent_width()).collect();
+        let empty_prefix = " ".repeat(self.indent_width());
         let line_prefixes = once(first_prefix).chain(repeat_with(|| empty_prefix.clone()));
 
         let mut result = Vec::new();

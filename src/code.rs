@@ -65,7 +65,6 @@ impl DocumentBlock for Code {
     fn max_width(&self) -> usize {
         self.content
             .lines()
-            .into_iter()
             .map(|l| l.len())
             .max()
             .unwrap_or(0)

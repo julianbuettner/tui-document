@@ -49,7 +49,7 @@ impl DocumentWidget {
             .flat_map(|t| t.get_text(width).lines.into_iter())
             .collect();
         let new_text = Text::from(lines);
-        Paragraph::new(new_text).wrap(Wrap { trim: false })
+        Paragraph::new(new_text).wrap(Wrap { trim: false }).scroll((self.scroll_offset as u16, 0))
     }
 }
 
