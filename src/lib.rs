@@ -5,12 +5,16 @@ mod atoms;
 mod document;
 mod text;
 mod title;
+mod bulletpoint;
+mod code;
 
 pub use atoms::Newlines;
 pub use document::{Document, DocumentBlock, DocumentWidget};
 use ratatui::prelude::Rect;
 pub use text::{Text, TextBlock};
 pub use title::{Title, TitleLevel};
+pub use bulletpoint::BulletPoint;
+pub use code::Code;
 
 /// Similiar to Rect, but allows for negative offset.
 /// Symbols in negative x or y coordinates are out of

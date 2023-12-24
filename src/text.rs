@@ -35,6 +35,15 @@ impl TextBlock {
 /// with lines wrapped.
 pub struct Text(pub Vec<TextBlock>);
 
+impl Text {
+    pub fn plain(content: impl ToString) -> Text {
+        TextBlock {
+            content: content.to_string(),
+            style: Default::default(),
+        }.space_separate()
+    }
+}
+
 impl DocumentBlock for TextBlock {
     fn max_width(&self) -> usize {
         self.content.graphemes(true).count()

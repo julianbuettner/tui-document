@@ -5,7 +5,7 @@ use crossterm::{
     ExecutableCommand,
 };
 use ratatui::{prelude::CrosstermBackend, Frame, Terminal};
-use tui_document::{Document, DocumentWidget, Newlines, TextBlock, Title};
+use tui_document::{BulletPoint, Document, DocumentWidget, Newlines, Text, TextBlock, Title, Code};
 
 fn ui(f: &mut Frame) {
     let doc = Document(vec![
@@ -28,6 +28,12 @@ fn ui(f: &mut Frame) {
             }
             .space_separate(),
         ),
+        Box::new(Newlines::new(2)),
+        Box::new(BulletPoint::plain(0, "Bullet points are great")),
+        Box::new(BulletPoint::plain(1, "Because there are subpoints")),
+        Box::new(BulletPoint::plain(1, "And because there are sub points")),
+        Box::new(Newlines::new(2)),
+        Box::new(Code::new("rust", "pub struct Wow {\n  hi: u64,\n}"))
     ]);
     let widget = DocumentWidget {
         document: doc,
