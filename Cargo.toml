@@ -9,7 +9,12 @@ crate-type = ["lib"]
 
 [dependencies]
 crossterm = "0.27.0"
-ratatui = "0.24.0"
+ratatui = "0.25.0"
 unicode-segmentation = "1.10.1"
 syntect = "5.1"
 ansi-to-tui = "3.1.0"
+rust-html-doc-parse = { git = "https://github.com/julianbuettner/rust-html-doc-parse.git", optional = true}
+
+[feature]
+pase-docs = ["dep:rust-html-doc-parse"]
+default = ["parse-docs"]

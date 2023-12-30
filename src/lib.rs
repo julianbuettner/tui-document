@@ -7,6 +7,8 @@ mod text;
 mod title;
 mod bulletpoint;
 mod code;
+#[cfg(feature = "parse-docs")]
+mod parse_docs;
 
 pub use atoms::Newlines;
 pub use document::{Document, DocumentBlock, DocumentWidget};
