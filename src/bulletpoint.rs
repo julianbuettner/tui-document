@@ -62,6 +62,9 @@ impl DocumentBlock for BulletPoint {
             line.spans.insert(0, Span::from(pref));
             result.push(line);
         }
-        ratatui::text::Text { lines: result }
+        ratatui::text::Text::from(result)
+    }
+    fn get_links(&self) -> Vec<&crate::TextBlock> {
+        self.content.get_links()
     }
 }

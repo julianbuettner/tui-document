@@ -3,7 +3,9 @@ use ratatui::{
     widgets::{Paragraph, Wrap},
 };
 
-pub trait DocumentBlock {
+use crate::TextBlock;
+
+pub trait DocumentBlock: Send + Sync {
     // If the block can be rendered on a
     // screen which is infinitely wide,
     // how wide would it be?
@@ -29,6 +31,10 @@ pub trait DocumentBlock {
     fn box_size_given_width(&self, width: usize) -> (usize, usize);
 
     fn get_text(&self, width: usize) -> Text;
+
+    fn get_links(&self) -> Vec<&crate::TextBlock> {
+        Vec::new()
+    }
 }
 
 pub struct Document(pub Vec<Box<dyn DocumentBlock>>);
@@ -49,12 +55,23 @@ impl DocumentWidget {
             .flat_map(|t| t.get_text(width).lines.into_iter())
             .collect();
         let new_text = Text::from(lines);
-        Paragraph::new(new_text).wrap(Wrap { trim: false }).scroll((self.scroll_offset as u16, 0))
+        Paragraph::new(new_text)
+            .wrap(Wrap { trim: false })
+            .scroll((self.scroll_offset as u16, 0))
     }
 }
 
 impl ratatui::widgets::Widget for &DocumentWidget {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer) {
         self.to_paragraph(area.width as usize).render(area, buf)
+    }
+}
+
+impl Document {
+    pub fn get_links(&self) -> Vec<&TextBlock> {
+        self.0
+            .iter()
+            .flat_map(|b| b.get_links().into_iter())
+            .collect()
     }
 }

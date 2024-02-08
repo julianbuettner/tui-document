@@ -28,9 +28,8 @@ impl DocumentBlock for Newlines {
         0
     }
     fn get_text(&self, _width: usize) -> ratatui::text::Text {
-        ratatui::text::Text {
-            lines: repeat(Line::default()).take(self.count).collect(),
-        }
+        let lines: Vec<Line<'_>> = repeat(Line::default()).take(self.count).collect();
+        ratatui::text::Text::from(lines)
     }
 
     fn box_size_given_width(&self, _width: usize) -> (usize, usize) {

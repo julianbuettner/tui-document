@@ -88,8 +88,7 @@ impl DocumentBlock for Title {
             let line_span = Span::from(bar);
             lines.push(ratatui::text::Line::from(line_span));
         }
-        let mut t = Text { lines };
-        t.patch_style(Style::default().fg(ratatui::style::Color::LightYellow));
-        t
+        let t = Text::from(lines);
+        t.patch_style(Style::default().fg(ratatui::style::Color::LightYellow))
     }
 }

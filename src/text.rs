@@ -12,6 +12,7 @@ use unicode_segmentation::UnicodeSegmentation;
 pub struct TextBlock {
     pub content: String,
     pub style: Style,
+    pub link: Option<String>,
 }
 
 impl TextBlock {
@@ -22,6 +23,7 @@ impl TextBlock {
                 .map(|word| TextBlock {
                     content: format!("{} ", word),
                     style: self.style,
+                    link: None,
                 })
                 .collect(),
         )
@@ -40,7 +42,9 @@ impl Text {
         TextBlock {
             content: content.to_string(),
             style: Default::default(),
-        }.space_separate()
+            link: None,
+        }
+        .space_separate()
     }
 }
 
@@ -57,8 +61,14 @@ impl DocumentBlock for TextBlock {
         (min(width, self.max_width()), self.max_width() / width + 1)
     }
     fn get_text(&self, _width: usize) -> ratatui::text::Text {
-        ratatui::text::Text {
-            lines: vec![Line::styled(&self.content, self.style)],
+        let lines: Vec<Line<'_>> = vec![Line::styled(&self.content, self.style)];
+        ratatui::text::Text::from(lines)
+    }
+    fn get_links(&self) -> Vec<&crate::TextBlock> {
+        if self.link.is_some() {
+            vec![&self]
+        } else {
+            Vec::new()
         }
     }
 }
@@ -119,7 +129,10 @@ impl DocumentBlock for Text {
             lines.push(current_line);
         }
 
-        ratatui::text::Text { lines }
+        ratatui::text::Text::from(lines)
+    }
+    fn get_links(&self) -> Vec<&crate::TextBlock> {
+        self.0.iter().filter(|b| b.link.is_some()).collect()
     }
 }
 
@@ -132,6 +145,7 @@ mod test {
         let text = TextBlock {
             content: "This-is-some-dummy-text".to_string(),
             style: Default::default(),
+            link: None,
         };
         assert_eq!(text.content.len(), 23);
 
@@ -145,6 +159,7 @@ mod test {
         let text = TextBlock {
             content: "This is some dummy text".to_string(),
             style: Default::default(),
+            link: None,
         };
         let blocks = text.space_separate();
 

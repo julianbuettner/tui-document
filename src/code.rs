@@ -50,7 +50,10 @@ impl DocumentBlock for Code {
             let escaped = as_24_bit_terminal_escaped(&ranges[..], true);
             formatted_text += &escaped;
         }
-        formatted_text.into_text().unwrap()
+        // https://github.com/uttarayan21/ansi-to-tui/issues/35
+        todo!()
+        // let old_text = formatted_text.into_text().unwrap();
+        // ratatui::text::Text::from(old_text.lines)
     }
 
     fn box_size_given_width(&self, _width: usize) -> (usize, usize) {
